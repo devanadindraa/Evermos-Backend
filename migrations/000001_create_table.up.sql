@@ -9,7 +9,7 @@ CREATE TABLE
         jenis_kelamin VARCHAR(255),
         tentang TEXT,
         pekerjaan VARCHAR(255),
-        email VARCHAR(255),
+        email VARCHAR(255) UNIQUE,
         id_provinsi VARCHAR(255),
         id_kota VARCHAR(255),
         isAdmin BOOLEAN,
