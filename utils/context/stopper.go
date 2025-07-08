@@ -3,7 +3,6 @@ package context
 import (
 	"context"
 	"fmt"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -21,17 +20,14 @@ func newStopperCtx(ctx context.Context) context.Context {
 }
 
 // getGID retrieves the goroutine ID (we'll use this to identify recursive calls).
-func getGID() int {
-	var buf [64]byte
-	n := runtime.Stack(buf[:], false)
-	idField := buf[10:n]
-	var id int
-	for _, b := range idField {
-		if b >= '0' && b <= '9' {
-			id = id*10 + int(b-'0')
-		}
-	}
-	return id
+var gidCounter uint64
+var gidMutex sync.Mutex
+
+func getGID() uint64 {
+	gidMutex.Lock()
+	defer gidMutex.Unlock()
+	gidCounter++
+	return gidCounter
 }
 
 func (s *stopperCtx) Value(key any) any {

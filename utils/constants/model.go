@@ -5,12 +5,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/google/uuid"
 )
 
 type JWTClaims struct {
-	ID    uuid.UUID `json:"userID"`
-	Email string    `json:"email"`
+	ID    int    `json:"userID"`
+	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
 
