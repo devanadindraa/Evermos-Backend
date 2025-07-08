@@ -15,7 +15,7 @@ type Config struct {
 	Environment Environment `envconfig:"environment" validate:"oneof=DEVELOPMENT TEST STAGING PRODUCTION"`
 	Version     string      `envconfig:"version" default:"development"`
 	Database    Database    `envconfig:"database"`
-	Logger      Logger      `envconfig:logger`
+	Logger      Logger      `envconfig:"logger"`
 	Auth        Auth        `envconfig:"auth"`
 	RateLimiter RateLimiter `envconfig:"rate_limiter"`
 }
