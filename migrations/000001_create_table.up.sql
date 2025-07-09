@@ -129,3 +129,8 @@ CREATE TABLE
         FOREIGN KEY (id_log_produk) REFERENCES log_produk (id),
         FOREIGN KEY (id_toko) REFERENCES toko (id)
     );
+
+CREATE TABLE invalid_token (
+    token VARCHAR(255) PRIMARY KEY,
+    expires TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

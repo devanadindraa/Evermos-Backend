@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/devanadindraa/Evermos-Backend/domains/user"
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
 	"github.com/devanadindraa/Evermos-Backend/utils/config"
 	"github.com/devanadindraa/Evermos-Backend/utils/constants"
@@ -25,8 +26,8 @@ import (
 type Middlewares interface {
 	AddRequestId(ctx *fiber.Ctx)
 	Logging(ctx *fiber.Ctx)
-	BasicAuth(ctx *fiber.Ctx)
-	JWT(ctx *fiber.Ctx)
+	BasicAuth(ctx *fiber.Ctx) error
+	JWT(ctx *fiber.Ctx) error
 	Recover(ctx *fiber.Ctx)
 	RateLimiter(ctx *fiber.Ctx)
 }
