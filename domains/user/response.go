@@ -2,14 +2,11 @@ package user
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type LoginRes struct {
-	Token         string    `json:"token"`
-	Expires       time.Time `json:"expires"`
-	TotalQuantity int64     `json:"total_cart"`
+	Token   string    `json:"token"`
+	Expires time.Time `json:"expires"`
 }
 
 type VerifyTokenRes struct {
@@ -18,11 +15,4 @@ type VerifyTokenRes struct {
 
 type LogoutRes struct {
 	LoggedOut bool `json:"loggedOut"`
-}
-
-type ActivityRes struct {
-	UserID      uuid.UUID
-	Name        string
-	Description string
-	CreatedAt   time.Time
 }
