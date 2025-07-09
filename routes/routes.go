@@ -17,7 +17,8 @@ func NewDependency(
 	userHandler user.Handler,
 ) *Dependency {
 
-	router := fiber.New()
+	app := fiber.New()
+	router := app.Group("/api/v1")
 	router.Use(func(c *fiber.Ctx) error {
 		if c.Method() != fiber.MethodGet &&
 			c.Method() != fiber.MethodPost &&
@@ -47,7 +48,7 @@ func NewDependency(
 	}
 
 	return &Dependency{
-		handler: router,
+		handler: app,
 		db:      db,
 	}
 }

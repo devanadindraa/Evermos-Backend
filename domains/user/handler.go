@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
 
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
@@ -82,6 +83,9 @@ func (h *handler) Logout(ctx *fiber.Ctx) error {
 }
 
 func (h *handler) Register(ctx *fiber.Ctx) error {
+	fmt.Println("DEBUG - Handler Register Dipanggil")
+	fmt.Printf("DEBUG - Validator: %v\n", h.validate)
+	fmt.Printf("DEBUG - Service: %v\n", h.service)
 
 	var input RegisterReq
 	if err := ctx.BodyParser(&input); err != nil {
@@ -89,9 +93,19 @@ func (h *handler) Register(ctx *fiber.Ctx) error {
 		return nil
 	}
 
+	if h.validate == nil {
+		respond.Error(ctx, apierror.NewError(http.StatusInternalServerError, "Validator is nil"))
+		return nil
+	}
+
 	err := h.validate.Struct(input)
 	if err != nil {
 		respond.Error(ctx, apierror.FromErr(err))
+		return nil
+	}
+
+	if h.service == nil {
+		respond.Error(ctx, apierror.NewError(http.StatusInternalServerError, "Service is nil"))
 		return nil
 	}
 
@@ -108,25 +122,21 @@ func (h *handler) Register(ctx *fiber.Ctx) error {
 func (h *handler) UpdateProfile(ctx *fiber.Ctx) {
 	var input UpdateProfileReq
 
-	// Bind JSON ke struct input
 	if err := ctx.BodyParser(&input); err != nil {
 		respond.Error(ctx, apierror.Warn(http.StatusBadRequest, err))
 		return
 	}
 
-	// Validasi input menggunakan validator
 	if err := h.validate.Struct(input); err != nil {
 		respond.Error(ctx, apierror.FromErr(err))
 		return
 	}
 
-	// Panggil service untuk update profile
 	res, err := h.service.UpdateProfile(ctx.Context(), input)
 	if err != nil {
 		respond.Error(ctx, apierror.FromErr(err))
 		return
 	}
 
-	// Respon sukses
 	respond.Success(ctx, http.StatusOK, "Succeed to UPDATE data", res)
 }

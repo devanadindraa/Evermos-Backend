@@ -28,7 +28,7 @@ func initializeDependency(config *config.Config) (*routes.Dependency, error) {
 	wire.Build(
 		database.NewDB,
 		middlewares.NewMiddlewares,
-		NewValidator
+		NewValidator,
 		routes.NewDependency,
 		userSet,
 	)

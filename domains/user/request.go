@@ -6,7 +6,7 @@ import (
 
 type LoginReq struct {
 	Notelp    string `json:"no_telp" validate:"required"`
-	KataSandi string `json:"pkata_sandiassword" validate:"required"`
+	KataSandi string `json:"kata_sandi" validate:"required"`
 }
 
 type LogoutReq struct {

@@ -37,7 +37,7 @@ func (s *service) Login(ctx context.Context, input LoginReq) (*LoginRes, error) 
 
 	var err error
 	var user User
-	if err = s.db.WithContext(ctx).Where("no_telp = ?", input.Notelp).First(&user).Error; err == nil {
+	if err = s.db.WithContext(ctx).Where("notelp = ?", input.Notelp).First(&user).Error; err == nil {
 		if !comparePassword(user.KataSandi, input.KataSandi) {
 			return nil, apierror.NewWarn(http.StatusUnauthorized, ErrInvalidCredentials)
 		}
@@ -117,15 +117,20 @@ func (s *service) Register(ctx context.Context, input RegisterReq) (res *User, e
 	user := User{
 		Nama:         input.Nama,
 		KataSandi:    hashedPassword,
-		NoTelp:       input.NoTelp,
+		Notelp:       input.NoTelp,
 		TanggalLahir: parsedDate,
 		Pekerjaan:    input.Pekerjaan,
 		Email:        input.Email,
 		IdProvinsi:   input.IdProvinsi,
 		IdKota:       input.IdKota,
-		IsAdmin:      *input.IsAdmin,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		IsAdmin: func() bool {
+			if input.IsAdmin != nil {
+				return *input.IsAdmin
+			}
+			return false
+		}(),
+		CreatedAtDate: time.Now(),
+		UpdatedAtDate: time.Now(),
 	}
 
 	// Insert into DB
@@ -160,14 +165,14 @@ func (s *service) UpdateProfile(ctx context.Context, input UpdateProfileReq) (re
 	// Update field di struct User
 	user.Nama = input.Nama
 	user.KataSandi = input.KataSandi
-	user.NoTelp = input.NoTelp
+	user.Notelp = input.NoTelp
 	user.TanggalLahir = parsedDate
 	user.Pekerjaan = input.Pekerjaan
 	user.Email = input.Email
 	user.IdProvinsi = input.IdProvinsi
 	user.IdKota = input.IdKota
 	user.IsAdmin = *input.IsAdmin
-	user.UpdatedAt = time.Now()
+	user.UpdatedAtDate = time.Now()
 
 	// Simpan perubahan di tabel user
 	if err := s.db.WithContext(ctx).Save(&user).Error; err != nil {
