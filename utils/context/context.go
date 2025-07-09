@@ -42,6 +42,6 @@ func GetRequestId(ctx context.Context) *uuid.UUID {
 	return &reqIdUUID
 }
 
-func setRequestId(ctx context.Context, requestId uuid.UUID) context.Context {
+func SetRequestId(ctx context.Context, requestId uuid.UUID) context.Context {
 	return context.WithValue(ctx, requestIdKey, requestId)
 }
