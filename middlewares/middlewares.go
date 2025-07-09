@@ -24,12 +24,12 @@ import (
 )
 
 type Middlewares interface {
-	AddRequestId(ctx *fiber.Ctx)
-	Logging(ctx *fiber.Ctx)
+	AddRequestId(ctx *fiber.Ctx) error
+	Logging(ctx *fiber.Ctx) error
 	BasicAuth(ctx *fiber.Ctx) error
 	JWT(ctx *fiber.Ctx) error
-	Recover(ctx *fiber.Ctx)
-	RateLimiter(ctx *fiber.Ctx)
+	Recover(ctx *fiber.Ctx) error
+	RateLimiter(ctx *fiber.Ctx) error
 }
 
 type middlewares struct {
@@ -47,14 +47,14 @@ func NewMiddlewares(conf *config.Config, userService user.Service) Middlewares {
 	}
 }
 
-func (m *middlewares) AddRequestId(ctx *fiber.Ctx) {
+func (m *middlewares) AddRequestId(ctx *fiber.Ctx) error {
 	requestId := uuid.New()
 	contextUtil.FiberWithCtx(ctx, contextUtil.SetRequestId(context.Background(), requestId))
 	ctx.Set("Request-Id", requestId.String())
-	ctx.Next()
+	return ctx.Next()
 }
 
-func (m *middlewares) Logging(ctx *fiber.Ctx) {
+func (m *middlewares) Logging(ctx *fiber.Ctx) error {
 	start := time.Now()
 	reqPayload := getRequestPayload(ctx)
 
@@ -83,6 +83,7 @@ func (m *middlewares) Logging(ctx *fiber.Ctx) {
 	}
 
 	logger.Log(ctxReal, logPayload, err)
+	return nil
 }
 
 func (m *middlewares) BasicAuth(ctx *fiber.Ctx) error {
@@ -163,19 +164,19 @@ func (m *middlewares) JWT(ctx *fiber.Ctx) error {
 	return ctx.Next()
 }
 
-func (m *middlewares) Recover(ctx *fiber.Ctx) {
+func (m *middlewares) Recover(ctx *fiber.Ctx) error {
 	defer func() {
 		if r := recover(); r != nil {
 			respond.Error(ctx, apierror.NewError(http.StatusInternalServerError, fmt.Sprintf("Panic : %v", r)))
 		}
 	}()
-	ctx.Next()
+	return ctx.Next()
 }
 
-func (m *middlewares) RateLimiter(ctx *fiber.Ctx) {
+func (m *middlewares) RateLimiter(ctx *fiber.Ctx) error {
 	if !m.rateLimiter.Allow() {
 		respond.Error(ctx, apierror.NewWarn(http.StatusTooManyRequests, "Too many request"))
-		return
+		return ctx.SendStatus(fiber.StatusTooManyRequests)
 	}
-	ctx.Next()
+	return ctx.Next()
 }
