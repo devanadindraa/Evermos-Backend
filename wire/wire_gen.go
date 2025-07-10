@@ -8,6 +8,7 @@ package wireinject
 
 import (
 	"github.com/devanadindraa/Evermos-Backend/database"
+	"github.com/devanadindraa/Evermos-Backend/domains/category"
 	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
 	"github.com/devanadindraa/Evermos-Backend/domains/user"
 	"github.com/devanadindraa/Evermos-Backend/middlewares"
@@ -34,7 +35,9 @@ func initializeDependency(config2 *config.Config) (*routes.Dependency, error) {
 	handler := user.NewHandler(service, validate)
 	provcityProvcity := provcity.NewEmsiaClient(config2)
 	provcityHandler := provcity.NewProvcityHandler(provcityProvcity)
-	dependency := routes.NewDependency(config2, middlewaresMiddlewares, db, handler, provcityHandler)
+	categoryService := category.NewService(config2, db)
+	categoryHandler := category.NewHandler(categoryService, validate)
+	dependency := routes.NewDependency(config2, middlewaresMiddlewares, db, handler, provcityHandler, categoryHandler)
 	return dependency, nil
 }
 
@@ -43,6 +46,8 @@ func initializeDependency(config2 *config.Config) (*routes.Dependency, error) {
 var userSet = wire.NewSet(user.NewService, user.NewHandler)
 
 var provcitySet = wire.NewSet(provcity.NewEmsiaClient, provcity.NewProvcityHandler)
+
+var categorySet = wire.NewSet(category.NewService, category.NewHandler)
 
 func NewValidator() *validator.Validate {
 	return validator.New()

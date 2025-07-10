@@ -27,7 +27,7 @@ type Middlewares interface {
 	AddRequestId(ctx *fiber.Ctx) error
 	Logging(ctx *fiber.Ctx) error
 	BasicAuth(ctx *fiber.Ctx) error
-	JWT(ctx *fiber.Ctx) error
+	JWT(requireAdmin bool) fiber.Handler
 	Recover(ctx *fiber.Ctx) error
 	RateLimiter(ctx *fiber.Ctx) error
 }
@@ -132,41 +132,48 @@ func (m *middlewares) BasicAuth(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusUnauthorized)
 }
 
-func (m *middlewares) JWT(ctx *fiber.Ctx) error {
-	authHeader := ctx.Get("Authorization")
-	if authHeader == "" {
-		authHeader = ctx.Get("Auth")
+func (m *middlewares) JWT(requireAdmin bool) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		authHeader := ctx.Get("Authorization")
+		if authHeader == "" {
+			authHeader = ctx.Get("Auth")
+		}
+
+		authorizationSplit := strings.Split(authHeader, " ")
+		if len(authorizationSplit) < 2 {
+			respond.Error(ctx, apierror.Unauthorized())
+			return nil
+		}
+
+		tokenStr := authorizationSplit[1]
+		claims := constants.JWTClaims{}
+
+		token, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(m.conf.Auth.JWT.SecretKey), nil
+		})
+		if err != nil || !token.Valid {
+			respond.Error(ctx, apierror.Unauthorized())
+			return nil
+		}
+
+		err = m.userService.ValidateToken(ctx.Context(), tokenStr)
+		if err != nil {
+			respond.Error(ctx, apierror.Unauthorized())
+			return nil
+		}
+
+		if requireAdmin && !claims.IsAdmin {
+			respond.Error(ctx, apierror.NewWarn(http.StatusForbidden, "Access denied: admin only"))
+			return nil
+		}
+
+		ctx.Locals("token", constants.Token{
+			Token:  tokenStr,
+			Claims: claims,
+		})
+
+		return ctx.Next()
 	}
-
-	authorizationSplit := strings.Split(authHeader, " ")
-	if len(authorizationSplit) < 2 {
-		respond.Error(ctx, apierror.Unauthorized())
-		return nil
-	}
-
-	tokenStr := authorizationSplit[1]
-	claims := constants.JWTClaims{}
-
-	token, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(m.conf.Auth.JWT.SecretKey), nil
-	})
-	if err != nil || !token.Valid {
-		respond.Error(ctx, apierror.Unauthorized())
-		return nil
-	}
-
-	err = m.userService.ValidateToken(ctx.Context(), tokenStr)
-	if err != nil {
-		respond.Error(ctx, apierror.Unauthorized())
-		return nil
-	}
-
-	ctx.Locals("token", constants.Token{
-		Token:  tokenStr,
-		Claims: claims,
-	})
-
-	return ctx.Next()
 }
 
 func (m *middlewares) Recover(ctx *fiber.Ctx) error {

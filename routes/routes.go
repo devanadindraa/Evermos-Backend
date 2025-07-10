@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/devanadindraa/Evermos-Backend/domains/category"
 	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
 	"github.com/devanadindraa/Evermos-Backend/domains/user"
 	"github.com/devanadindraa/Evermos-Backend/middlewares"
@@ -17,6 +18,7 @@ func NewDependency(
 	db *gorm.DB,
 	userHandler user.Handler,
 	provcityHandler provcity.Handler,
+	categoryHandler category.Handler,
 ) *Dependency {
 
 	app := fiber.New()
@@ -44,16 +46,16 @@ func NewDependency(
 	auth := router.Group("/auth")
 	{
 		auth.Post("/login", mw.BasicAuth, userHandler.Login)
-		auth.Get("/verify-token", mw.JWT, userHandler.VerifyToken)
-		auth.Post("/logout", mw.JWT, userHandler.Logout)
+		auth.Get("/verify-token", mw.JWT(false), userHandler.VerifyToken)
+		auth.Post("/logout", mw.JWT(false), userHandler.Logout)
 		auth.Post("/register", mw.BasicAuth, userHandler.Register)
 	}
 
 	// domain user
 	user := router.Group("/user")
 	{
-		user.Put("", mw.JWT, userHandler.UpdateProfile)
-		user.Get("", mw.JWT, userHandler.GetProfile)
+		user.Put("", mw.JWT(false), userHandler.UpdateProfile)
+		user.Get("", mw.JWT(false), userHandler.GetProfile)
 	}
 
 	// domain provcity
@@ -63,6 +65,13 @@ func NewDependency(
 		provcity.Get("/listcities/:prov_id", provcityHandler.GetCitys)
 		provcity.Get("/detailprovince/:prov_id", provcityHandler.GetDetailProvince)
 		provcity.Get("/detailcity/:city_id", provcityHandler.GetDetailCity)
+	}
+
+	// domain category
+	category := router.Group("/category")
+	{
+		category.Post("", mw.JWT(true), categoryHandler.AddCategory)
+		category.Get("", mw.JWT(true), categoryHandler.GetAllCategory)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {

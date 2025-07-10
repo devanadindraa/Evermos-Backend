@@ -53,8 +53,9 @@ func (s *service) Login(ctx context.Context, input LoginReq) (*LoginRes, error) 
 
 	expirationTime := time.Now().Add(s.authConfig.JWT.ExpireIn)
 	claims := &constants.JWTClaims{
-		ID:     int(user.ID),
-		NoTelp: input.Notelp,
+		ID:      int(user.ID),
+		IsAdmin: bool(user.IsAdmin),
+		NoTelp:  input.Notelp,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},

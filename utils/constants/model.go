@@ -8,8 +8,9 @@ import (
 )
 
 type JWTClaims struct {
-	ID     int    `json:"userID"`
-	NoTelp string `json:"no_telp"`
+	ID      int    `json:"userID"`
+	IsAdmin bool   `json:"isAdmin"`
+	NoTelp  string `json:"no_telp"`
 	jwt.RegisteredClaims
 }
 
