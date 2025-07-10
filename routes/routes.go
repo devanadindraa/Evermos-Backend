@@ -38,7 +38,7 @@ func NewDependency(
 		router.Use(mw.Recover)
 	}
 
-	// domain user
+	// domain auth
 	auth := router.Group("/auth")
 	{
 		auth.Post("/login", mw.BasicAuth, userHandler.Login)
@@ -46,6 +46,21 @@ func NewDependency(
 		auth.Post("/logout", mw.JWT, userHandler.Logout)
 		auth.Post("/register", mw.BasicAuth, userHandler.Register)
 	}
+
+	// domain user
+	user := router.Group("/user")
+	{
+		user.Put("", mw.JWT, userHandler.UpdateProfile)
+	}
+
+	app.Use(func(ctx *fiber.Ctx) error {
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  false,
+			"message": "Endpoint not found",
+			"errors":  []string{"Please check the URL or HTTP method used"},
+			"data":    nil,
+		})
+	})
 
 	return &Dependency{
 		handler: app,

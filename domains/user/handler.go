@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -16,7 +17,7 @@ type Handler interface {
 	VerifyToken(ctx *fiber.Ctx) error
 	Logout(ctx *fiber.Ctx) error
 	Register(ctx *fiber.Ctx) error
-	UpdateProfile(ctx *fiber.Ctx)
+	UpdateProfile(ctx *fiber.Ctx) error
 }
 
 type handler struct {
@@ -119,24 +120,21 @@ func (h *handler) Register(ctx *fiber.Ctx) error {
 	return nil
 }
 
-func (h *handler) UpdateProfile(ctx *fiber.Ctx) {
-	var input UpdateProfileReq
+func (h *handler) UpdateProfile(ctx *fiber.Ctx) error {
+	reqCtx := ctx.Locals("ctx").(context.Context)
 
+	var input UpdateProfileReq
 	if err := ctx.BodyParser(&input); err != nil {
 		respond.Error(ctx, apierror.Warn(http.StatusBadRequest, err))
-		return
+		return nil
 	}
 
-	if err := h.validate.Struct(input); err != nil {
-		respond.Error(ctx, apierror.FromErr(err))
-		return
-	}
-
-	res, err := h.service.UpdateProfile(ctx.Context(), input)
+	res, err := h.service.UpdateProfile(reqCtx, input)
 	if err != nil {
-		respond.Error(ctx, apierror.FromErr(err))
-		return
+		respond.Error(ctx, err)
+		return nil
 	}
 
-	respond.Success(ctx, http.StatusOK, "Succeed to UPDATE data", res)
+	respond.Success(ctx, http.StatusOK, "Profile updated successfully", res)
+	return nil
 }

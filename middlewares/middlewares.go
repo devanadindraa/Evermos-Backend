@@ -49,7 +49,12 @@ func NewMiddlewares(conf *config.Config, userService user.Service) Middlewares {
 
 func (m *middlewares) AddRequestId(ctx *fiber.Ctx) error {
 	requestId := uuid.New()
-	contextUtil.FiberWithCtx(ctx, contextUtil.SetRequestId(context.Background(), requestId))
+
+	baseCtx := context.WithValue(context.Background(), contextUtil.RequestIdKey, requestId)
+	ctxWithFiber := context.WithValue(baseCtx, contextUtil.FiberCtxKey, ctx)
+
+	ctx = contextUtil.FiberWithCtx(ctx, ctxWithFiber)
+
 	ctx.Set("Request-Id", requestId.String())
 	return ctx.Next()
 }

@@ -1,8 +1,9 @@
 package context
 
-type contextKey string
+type ctxKey string
 
 const (
-	tokenKey     contextKey = "token"
-	requestIdKey contextKey = "requestId"
+	tokenKey     ctxKey = "token"
+	RequestIdKey ctxKey = "requestId"
+	FiberCtxKey  ctxKey = "fiberCtx"
 )

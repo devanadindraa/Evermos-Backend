@@ -107,28 +107,22 @@ func (s *service) Register(ctx context.Context, input RegisterReq) (res *User, e
 		return nil, apierror.FromErr(err)
 	}
 
-	layout := "02/01/2006"
-	parsedDate, err := time.Parse(layout, input.TanggalLahir)
+	parsedDate, err := ParseDateFromPointer(input.TanggalLahir, "02/01/2006")
 	if err != nil {
 		return nil, apierror.FromErr(err)
 	}
 
 	// Build user object
 	user := User{
-		Nama:         input.Nama,
-		KataSandi:    hashedPassword,
-		Notelp:       input.NoTelp,
-		TanggalLahir: parsedDate,
-		Pekerjaan:    input.Pekerjaan,
-		Email:        input.Email,
-		IdProvinsi:   input.IdProvinsi,
-		IdKota:       input.IdKota,
-		IsAdmin: func() bool {
-			if input.IsAdmin != nil {
-				return *input.IsAdmin
-			}
-			return false
-		}(),
+		Nama:          input.Nama,
+		KataSandi:     hashedPassword,
+		Notelp:        input.NoTelp,
+		TanggalLahir:  parsedDate,
+		Pekerjaan:     GetStringOrDefault(input.Pekerjaan, ""),
+		Email:         input.Email,
+		IdProvinsi:    GetStringOrDefault(input.IdProvinsi, ""),
+		IdKota:        GetStringOrDefault(input.IdKota, ""),
+		IsAdmin:       GetBoolOrDefault(input.IsAdmin, false),
 		CreatedAtDate: time.Now(),
 		UpdatedAtDate: time.Now(),
 	}
@@ -156,8 +150,7 @@ func (s *service) UpdateProfile(ctx context.Context, input UpdateProfileReq) (re
 		return nil, apierror.FromErr(err)
 	}
 
-	layout := "02/01/2006"
-	parsedDate, err := time.Parse(layout, input.TanggalLahir)
+	parsedDate, err := ParseDateFromPointer(input.TanggalLahir, "02/01/2006")
 	if err != nil {
 		return nil, apierror.FromErr(err)
 	}
@@ -167,11 +160,11 @@ func (s *service) UpdateProfile(ctx context.Context, input UpdateProfileReq) (re
 	user.KataSandi = input.KataSandi
 	user.Notelp = input.NoTelp
 	user.TanggalLahir = parsedDate
-	user.Pekerjaan = input.Pekerjaan
+	user.Pekerjaan = GetStringOrDefault(input.Pekerjaan, "")
 	user.Email = input.Email
-	user.IdProvinsi = input.IdProvinsi
-	user.IdKota = input.IdKota
-	user.IsAdmin = *input.IsAdmin
+	user.IdProvinsi = GetStringOrDefault(input.IdProvinsi, "")
+	user.IdKota = GetStringOrDefault(input.IdKota, "")
+	user.IsAdmin = GetBoolOrDefault(input.IsAdmin, false)
 	user.UpdatedAtDate = time.Now()
 
 	// Simpan perubahan di tabel user

@@ -19,6 +19,8 @@ type User struct {
 	KataSandi     string    `json:"kata_sandi"`
 	Notelp        string    `json:"notelp" gorm:"unique"`
 	TanggalLahir  time.Time `json:"tanggal_Lahir" gorm:"type:date"`
+	JenisKelamin  string    `json:"jenis_kelasmin"`
+	Tentang       string    `json:"tentang"`
 	Pekerjaan     string    `json:"pekerjaan"`
 	Email         string    `json:"email"`
 	IdProvinsi    string    `json:"id_provinsi"`
