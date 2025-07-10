@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
 	"github.com/devanadindraa/Evermos-Backend/domains/user"
 	"github.com/devanadindraa/Evermos-Backend/middlewares"
 	"github.com/devanadindraa/Evermos-Backend/utils/config"
@@ -15,6 +16,7 @@ func NewDependency(
 	mw middlewares.Middlewares,
 	db *gorm.DB,
 	userHandler user.Handler,
+	provcityHandler provcity.Handler,
 ) *Dependency {
 
 	app := fiber.New()
@@ -52,6 +54,15 @@ func NewDependency(
 	{
 		user.Put("", mw.JWT, userHandler.UpdateProfile)
 		user.Get("", mw.JWT, userHandler.GetProfile)
+	}
+
+	// domain provcity
+	provcity := router.Group("/provcity")
+	{
+		provcity.Get("/listprovincies", provcityHandler.GetProvinces)
+		provcity.Get("/listcities/:prov_id", provcityHandler.GetCitys)
+		provcity.Get("/detailprovince/:prov_id", provcityHandler.GetDetailProvince)
+		provcity.Get("/detailcity/:city_id", provcityHandler.GetDetailCity)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {

@@ -18,6 +18,7 @@ type Config struct {
 	Logger      Logger      `envconfig:"logger"`
 	Auth        Auth        `envconfig:"auth"`
 	RateLimiter RateLimiter `envconfig:"rate_limiter"`
+	Emsifa      Emsifa      `envconfig:"emsifa"`
 }
 
 type Database struct {
@@ -52,6 +53,10 @@ type Basic struct {
 type RateLimiter struct {
 	Rps    int `envconfig:"rps" default:"10"`
 	Bursts int `envconfig:"bursts" default:"5"`
+}
+
+type Emsifa struct {
+	BaseUrl string `envconfig:"base_url"`
 }
 
 var config *Config
