@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
@@ -18,6 +17,7 @@ type Handler interface {
 	Logout(ctx *fiber.Ctx) error
 	Register(ctx *fiber.Ctx) error
 	UpdateProfile(ctx *fiber.Ctx) error
+	GetProfile(ctx *fiber.Ctx) error
 }
 
 type handler struct {
@@ -84,10 +84,6 @@ func (h *handler) Logout(ctx *fiber.Ctx) error {
 }
 
 func (h *handler) Register(ctx *fiber.Ctx) error {
-	fmt.Println("DEBUG - Handler Register Dipanggil")
-	fmt.Printf("DEBUG - Validator: %v\n", h.validate)
-	fmt.Printf("DEBUG - Service: %v\n", h.service)
-
 	var input RegisterReq
 	if err := ctx.BodyParser(&input); err != nil {
 		respond.Error(ctx, apierror.Warn(http.StatusBadRequest, err))
@@ -135,6 +131,19 @@ func (h *handler) UpdateProfile(ctx *fiber.Ctx) error {
 		return nil
 	}
 
-	respond.Success(ctx, http.StatusOK, "Profile updated successfully", res)
+	respond.Success(ctx, http.StatusOK, "Succeed to PUT data", res)
+	return nil
+}
+
+func (h *handler) GetProfile(ctx *fiber.Ctx) error {
+	reqCtx := ctx.Locals("ctx").(context.Context)
+
+	res, err := h.service.GetProfile(reqCtx)
+	if err != nil {
+		respond.Error(ctx, err)
+		return nil
+	}
+
+	respond.Success(ctx, http.StatusOK, "Succeed to GET data", res)
 	return nil
 }

@@ -51,6 +51,7 @@ func NewDependency(
 	user := router.Group("/user")
 	{
 		user.Put("", mw.JWT, userHandler.UpdateProfile)
+		user.Get("", mw.JWT, userHandler.GetProfile)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {

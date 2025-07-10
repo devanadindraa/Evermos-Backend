@@ -19,6 +19,7 @@ type Service interface {
 	ValidateToken(ctx context.Context, token string) (err error)
 	Register(ctx context.Context, input RegisterReq) (res *User, err error)
 	UpdateProfile(ctx context.Context, input UpdateProfileReq) (res *User, err error)
+	GetProfile(ctx context.Context) (*User, error)
 }
 
 type service struct {
@@ -143,34 +144,69 @@ func (s *service) UpdateProfile(ctx context.Context, input UpdateProfileReq) (re
 	userID := token.Claims.ID
 
 	var user User
-	err = s.db.WithContext(ctx).
-		Where("id = ?", userID).
-		First(&user).Error
-	if err != nil {
+	if err := s.db.WithContext(ctx).First(&user, "id = ?", userID).Error; err != nil {
 		return nil, apierror.FromErr(err)
 	}
 
-	parsedDate, err := ParseDateFromPointer(input.TanggalLahir, "02/01/2006")
-	if err != nil {
-		return nil, apierror.FromErr(err)
+	if input.Nama != nil {
+		user.Nama = *input.Nama
+	}
+	if input.KataSandi != nil {
+		hashedPassword, err := hashPassword(*input.KataSandi)
+		if err != nil {
+			return nil, apierror.FromErr(err)
+		}
+		user.KataSandi = hashedPassword
+	}
+	if input.NoTelp != nil {
+		user.Notelp = *input.NoTelp
+	}
+	if input.TanggalLahir != nil {
+		parsedDate, err := ParseDateFromPointer(input.TanggalLahir, "02/01/2006")
+		if err != nil {
+			return nil, apierror.FromErr(err)
+		}
+		user.TanggalLahir = parsedDate
+	}
+	if input.Pekerjaan != nil {
+		user.Pekerjaan = *input.Pekerjaan
+	}
+	if input.Email != nil {
+		user.Email = *input.Email
+	}
+	if input.IdProvinsi != nil {
+		user.IdProvinsi = *input.IdProvinsi
+	}
+	if input.IdKota != nil {
+		user.IdKota = *input.IdKota
+	}
+	if input.IsAdmin != nil {
+		user.IsAdmin = *input.IsAdmin
 	}
 
-	// Update field di struct User
-	user.Nama = input.Nama
-	user.KataSandi = input.KataSandi
-	user.Notelp = input.NoTelp
-	user.TanggalLahir = parsedDate
-	user.Pekerjaan = GetStringOrDefault(input.Pekerjaan, "")
-	user.Email = input.Email
-	user.IdProvinsi = GetStringOrDefault(input.IdProvinsi, "")
-	user.IdKota = GetStringOrDefault(input.IdKota, "")
-	user.IsAdmin = GetBoolOrDefault(input.IsAdmin, false)
 	user.UpdatedAtDate = time.Now()
 
-	// Simpan perubahan di tabel user
 	if err := s.db.WithContext(ctx).Save(&user).Error; err != nil {
 		return nil, apierror.FromErr(err)
 	}
+
+	return &user, nil
+}
+
+func (s *service) GetProfile(ctx context.Context) (*User, error) {
+	token, err := contextUtil.GetTokenClaims(ctx)
+	if err != nil {
+		return nil, apierror.FromErr(err)
+	}
+
+	userID := token.Claims.ID
+
+	var user User
+	if err := s.db.WithContext(ctx).Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, apierror.FromErr(err)
+	}
+
+	user.KataSandi = ""
 
 	return &user, nil
 }
