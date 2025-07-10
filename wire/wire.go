@@ -7,6 +7,7 @@ import (
 	"github.com/devanadindraa/Evermos-Backend/database"
 	"github.com/devanadindraa/Evermos-Backend/domains/category"
 	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
+	"github.com/devanadindraa/Evermos-Backend/domains/shop"
 	"github.com/devanadindraa/Evermos-Backend/domains/user"
 	"github.com/devanadindraa/Evermos-Backend/middlewares"
 	"github.com/devanadindraa/Evermos-Backend/routes"
@@ -31,6 +32,11 @@ var categorySet = wire.NewSet(
 	category.NewHandler,
 )
 
+var shopSet = wire.NewSet(
+	shop.NewService,
+	shop.NewHandler,
+)
+
 func NewValidator() *validator.Validate {
 	return validator.New()
 }
@@ -45,6 +51,7 @@ func initializeDependency(config *config.Config) (*routes.Dependency, error) {
 		userSet,
 		provcitySet,
 		categorySet,
+		shopSet,
 	)
 
 	return nil, nil

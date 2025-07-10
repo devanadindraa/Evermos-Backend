@@ -10,6 +10,7 @@ import (
 	"github.com/devanadindraa/Evermos-Backend/database"
 	"github.com/devanadindraa/Evermos-Backend/domains/category"
 	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
+	"github.com/devanadindraa/Evermos-Backend/domains/shop"
 	"github.com/devanadindraa/Evermos-Backend/domains/user"
 	"github.com/devanadindraa/Evermos-Backend/middlewares"
 	"github.com/devanadindraa/Evermos-Backend/routes"
@@ -37,7 +38,9 @@ func initializeDependency(config2 *config.Config) (*routes.Dependency, error) {
 	provcityHandler := provcity.NewProvcityHandler(provcityProvcity)
 	categoryService := category.NewService(config2, db)
 	categoryHandler := category.NewHandler(categoryService, validate)
-	dependency := routes.NewDependency(config2, middlewaresMiddlewares, db, handler, provcityHandler, categoryHandler)
+	shopService := shop.NewService(config2, db)
+	shopHandler := shop.NewHandler(shopService, validate)
+	dependency := routes.NewDependency(config2, middlewaresMiddlewares, db, handler, provcityHandler, categoryHandler, shopHandler)
 	return dependency, nil
 }
 
@@ -48,6 +51,8 @@ var userSet = wire.NewSet(user.NewService, user.NewHandler)
 var provcitySet = wire.NewSet(provcity.NewEmsiaClient, provcity.NewProvcityHandler)
 
 var categorySet = wire.NewSet(category.NewService, category.NewHandler)
+
+var shopSet = wire.NewSet(shop.NewService, shop.NewHandler)
 
 func NewValidator() *validator.Validate {
 	return validator.New()

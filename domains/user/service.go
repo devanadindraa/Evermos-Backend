@@ -2,9 +2,11 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/devanadindraa/Evermos-Backend/domains/shop"
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
 	"github.com/devanadindraa/Evermos-Backend/utils/config"
 	"github.com/devanadindraa/Evermos-Backend/utils/constants"
@@ -132,6 +134,19 @@ func (s *service) Register(ctx context.Context, input RegisterReq) (res *User, e
 	// Insert into DB
 	if err := s.db.WithContext(ctx).Create(&user).Error; err != nil {
 		return nil, apierror.FromErr(err)
+	}
+
+	if !user.IsAdmin {
+		toko := shop.Toko{
+			IdUser:        user.ID,
+			NamaToko:      fmt.Sprintf("Toko %s", user.Nama),
+			CreatedAtDate: time.Now(),
+			UpdatedAtDate: time.Now(),
+		}
+
+		if err := s.db.WithContext(ctx).Create(&toko).Error; err != nil {
+			return nil, apierror.FromErr(fmt.Errorf("gagal membuat toko: %w", err))
+		}
 	}
 
 	return &user, nil
