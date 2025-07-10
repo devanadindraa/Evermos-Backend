@@ -72,6 +72,9 @@ func NewDependency(
 	{
 		category.Post("", mw.JWT(true), categoryHandler.AddCategory)
 		category.Get("", mw.JWT(true), categoryHandler.GetAllCategory)
+		category.Get("/:id", mw.JWT(true), categoryHandler.GetCategoryByID)
+		category.Delete("/:id", mw.JWT(true), categoryHandler.DeleteCategory)
+		category.Put("/:id", mw.JWT(true), categoryHandler.UpdateCategory)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {

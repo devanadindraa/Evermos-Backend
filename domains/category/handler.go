@@ -1,6 +1,7 @@
 package category
 
 import (
+	"fmt"
 	"net/http"
 
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
@@ -12,6 +13,9 @@ import (
 type Handler interface {
 	AddCategory(ctx *fiber.Ctx) error
 	GetAllCategory(ctx *fiber.Ctx) error
+	GetCategoryByID(ctx *fiber.Ctx) error
+	DeleteCategory(ctx *fiber.Ctx) error
+	UpdateCategory(ctx *fiber.Ctx) error
 }
 
 type handler struct {
@@ -58,5 +62,66 @@ func (h *handler) GetAllCategory(ctx *fiber.Ctx) error {
 	}
 
 	respond.Success(ctx, http.StatusOK, "Succeed to GET data", res)
+	return nil
+}
+
+func (h *handler) GetCategoryByID(ctx *fiber.Ctx) error {
+	categoryID := ctx.Params("id")
+	if categoryID == "" {
+		respond.Error(ctx, fmt.Errorf("id is required"))
+		return nil
+	}
+	result, err := h.service.GetCategoryByID(ctx.Context(), categoryID)
+	if err != nil {
+		respond.Error(ctx, err)
+		return nil
+	}
+
+	respond.Success(ctx, http.StatusOK, "Succeed to GET data", result)
+	return nil
+}
+
+func (h *handler) DeleteCategory(ctx *fiber.Ctx) error {
+	categoryID := ctx.Params("id")
+	if categoryID == "" {
+		respond.Error(ctx, fmt.Errorf("id is required"))
+		return nil
+	}
+	err := h.service.DeleteCategory(ctx.Context(), categoryID)
+	if err != nil {
+		respond.Error(ctx, err)
+		return nil
+	}
+
+	respond.Success(ctx, http.StatusOK, "Succeed to DELETE data", nil)
+	return nil
+}
+
+func (h *handler) UpdateCategory(ctx *fiber.Ctx) error {
+	categoryID := ctx.Params("id")
+	if categoryID == "" {
+		respond.Error(ctx, fmt.Errorf("id is required"))
+		return nil
+	}
+
+	var input CategoryReq
+	if err := ctx.BodyParser(&input); err != nil {
+		respond.Error(ctx, apierror.Warn(http.StatusBadRequest, err))
+		return nil
+	}
+
+	err := h.validate.Struct(input)
+	if err != nil {
+		respond.Error(ctx, apierror.FromErr(err))
+		return nil
+	}
+
+	res, err := h.service.UpdateCategory(ctx.Context(), input, categoryID)
+	if err != nil {
+		respond.Error(ctx, apierror.FromErr(err))
+		return nil
+	}
+
+	respond.Success(ctx, http.StatusOK, "Succeed to PUT data", res)
 	return nil
 }
