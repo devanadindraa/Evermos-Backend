@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/devanadindraa/Evermos-Backend/domains/address"
 	"github.com/devanadindraa/Evermos-Backend/domains/category"
+	"github.com/devanadindraa/Evermos-Backend/domains/product"
 	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
 	"github.com/devanadindraa/Evermos-Backend/domains/shop"
 	"github.com/devanadindraa/Evermos-Backend/domains/user"
@@ -23,6 +24,7 @@ func NewDependency(
 	categoryHandler category.Handler,
 	shopHandler shop.Handler,
 	addressHandler address.Handler,
+	productHandler product.Handler,
 ) *Dependency {
 
 	app := fiber.New()
@@ -93,6 +95,12 @@ func NewDependency(
 		shop.Get("/:id_toko", mw.JWT(false), shopHandler.GetShopByID)
 		shop.Put("/:id_toko", mw.JWT(false), shopHandler.UpdateMyShop)
 		shop.Get("/", mw.JWT(false), shopHandler.GetAllShop)
+	}
+
+	// domain produk
+	product := router.Group("/product")
+	{
+		product.Post("", mw.JWT(false), productHandler.AddProduct)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {
