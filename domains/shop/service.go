@@ -10,6 +10,7 @@ import (
 
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
 	"github.com/devanadindraa/Evermos-Backend/utils/config"
+	"github.com/devanadindraa/Evermos-Backend/utils/constants"
 	contextUtil "github.com/devanadindraa/Evermos-Backend/utils/context"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -19,6 +20,7 @@ type Service interface {
 	GetMyShop(ctx context.Context) (res *ShopRes, err error)
 	GetShopByID(ctx context.Context, shopID string) (res *ShopRes, err error)
 	UpdateMyShop(ctx context.Context, input UpdateShopReq, shopID string) (Toko, error)
+	GetAllShop(ctx context.Context, filter *constants.FilterReq) (res *PaginatedShopRes, err error)
 }
 
 type service struct {
@@ -123,24 +125,61 @@ func (s *service) UpdateMyShop(ctx context.Context, input UpdateShopReq, shopID 
 	return shop, nil
 }
 
-func (s *service) GetAllShop(ctx context.Context) (res []ShopRes, err error) {
+func (s *service) GetAllShop(ctx context.Context, filter *constants.FilterReq) (res *PaginatedShopRes, err error) {
+	token, err := contextUtil.GetTokenClaims(ctx)
+	if err != nil {
+		return &PaginatedShopRes{}, apierror.FromErr(err)
+	}
+
+	isAdmin := token.Claims.IsAdmin
 
 	var shops []Toko
-	if err := s.db.WithContext(ctx).Find(&shops).Error; err != nil {
+	var total int64
+
+	query := s.db.WithContext(ctx).Model(&Toko{})
+
+	if filter.Keyword != "" {
+		query = query.Where("nama_toko LIKE ?", "%"+filter.Keyword+"%")
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, apierror.FromErr(err)
+	}
+
+	offset := (filter.Page - 1) * filter.Limit
+
+	if err := query.
+		Order(fmt.Sprintf("%s %s", filter.OrderBy, filter.SortOrder)).
+		Limit(int(filter.Limit)).
+		Offset(int(offset)).
+		Find(&shops).Error; err != nil {
 		return nil, apierror.FromErr(err)
 	}
 
 	var result []ShopRes
-
-	for _, cat := range shops {
-		IdUser := int(cat.IdUser)
-		result = append(result, ShopRes{
-			ID:       int(cat.ID),
-			NamaToko: cat.NamaToko,
-			UrlFoto:  cat.UrlFoto,
-			IdUser:   &IdUser,
-		})
+	if !isAdmin {
+		for _, cat := range shops {
+			result = append(result, ShopRes{
+				ID:       int(cat.ID),
+				NamaToko: cat.NamaToko,
+				UrlFoto:  cat.UrlFoto,
+			})
+		}
+	} else {
+		for _, cat := range shops {
+			IdUser := int(cat.IdUser)
+			result = append(result, ShopRes{
+				ID:       int(cat.ID),
+				NamaToko: cat.NamaToko,
+				UrlFoto:  cat.UrlFoto,
+				IdUser:   &IdUser,
+			})
+		}
 	}
 
-	return result, nil
+	return &PaginatedShopRes{
+		Page:  int(filter.Page),
+		Limit: int(filter.Limit),
+		Data:  result,
+	}, nil
 }

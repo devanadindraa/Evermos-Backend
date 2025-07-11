@@ -6,3 +6,9 @@ type ShopRes struct {
 	UrlFoto  string `json:"url_foto"`
 	IdUser   *int   `json:"id_user,omitempty"`
 }
+
+type PaginatedShopRes struct {
+	Page  int       `json:"page"`
+	Limit int       `json:"limit"`
+	Data  []ShopRes `json:"data"`
+}

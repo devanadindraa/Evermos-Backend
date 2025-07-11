@@ -85,6 +85,7 @@ func NewDependency(
 		shop.Get("/my", mw.JWT(false), shopHandler.GetMyShop)
 		shop.Get("/:id_toko", mw.JWT(false), shopHandler.GetShopByID)
 		shop.Put("/:id_toko", mw.JWT(false), shopHandler.UpdateMyShop)
+		shop.Get("/", mw.JWT(false), shopHandler.GetAllShop)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {

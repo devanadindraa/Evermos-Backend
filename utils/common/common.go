@@ -32,6 +32,15 @@ func GetMetaData(ctx *fiber.Ctx, validate *validator.Validate, allowedColumns ..
 
 	sortOrder := strings.ToLower(ctx.Query(constants.QUERY_PARAMS_SORT_ORDER, "asc"))
 	keyword := ctx.Query(constants.QUERY_PARAMS_KEYWORD)
+	if keyword == "" {
+		keyword = ctx.Query("nama")
+	}
+	if keyword == "" {
+		keyword = ctx.Query("search")
+	}
+	if keyword == "" {
+		keyword = ctx.Query("q")
+	}
 
 	startCreatedAtStr := ctx.Query(constants.QUERY_PARAMS_START_CREATED_AT)
 	endCreatedAtStr := ctx.Query(constants.QUERY_PARAMS_END_CREATED_AT)
