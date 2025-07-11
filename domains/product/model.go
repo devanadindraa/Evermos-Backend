@@ -9,6 +9,7 @@ type Product struct {
 	IdToko        uint    `gorm:"not null"`
 	NamaProduk    string  `json:"nama_produk"`
 	IdCategory    uint    `gorm:"not null"`
+	Slug          string  `json:"slug"`
 	HargaReseller string  `json:"harga_reseller"`
 	HargaKonsumen string  `json:"harga_konsumen"`
 	Stok          int     `json:"stok"`

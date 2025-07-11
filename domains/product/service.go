@@ -58,8 +58,14 @@ func (s *service) AddProduct(ctx context.Context, input ProductReq) (res *Produc
 	}
 
 	product := Product{
-		IdToko:        shop.ID,
-		NamaProduk:    input.NamaProduk,
+		IdToko:     shop.ID,
+		NamaProduk: input.NamaProduk,
+		Slug: func() string {
+			if input.Slug != nil {
+				return *input.Slug
+			}
+			return ""
+		}(),
 		IdCategory:    input.IdCategory,
 		HargaReseller: input.HargaReseller,
 		HargaKonsumen: input.HargaKonsumen,

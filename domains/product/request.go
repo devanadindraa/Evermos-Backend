@@ -6,6 +6,7 @@ import (
 
 type ProductReq struct {
 	NamaProduk    string                  `form:"nama_produk" validate:"required"`
+	Slug          *string                 `form:"slug"`
 	IdCategory    uint                    `form:"category_id" validate:"required"`
 	HargaReseller string                  `form:"harga_reseller" validate:"required"`
 	HargaKonsumen string                  `form:"harga_konsumen" validate:"required"`
