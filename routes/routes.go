@@ -101,6 +101,8 @@ func NewDependency(
 	product := router.Group("/product")
 	{
 		product.Post("", mw.JWT(false), productHandler.AddProduct)
+		product.Get("/:id", mw.JWT(false), productHandler.GetProductByID)
+		product.Delete("/:id", mw.JWT(false), productHandler.DeleteProduct)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {

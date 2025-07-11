@@ -13,6 +13,8 @@ import (
 
 type Handler interface {
 	AddProduct(ctx *fiber.Ctx) error
+	GetProductByID(ctx *fiber.Ctx) error
+	DeleteProduct(ctx *fiber.Ctx) error
 }
 
 type handler struct {
@@ -52,5 +54,38 @@ func (h *handler) AddProduct(ctx *fiber.Ctx) error {
 	}
 
 	respond.Success(ctx, http.StatusOK, "Succeed to POST product", result)
+	return nil
+}
+
+func (h *handler) GetProductByID(ctx *fiber.Ctx) error {
+	productID := ctx.Params("id")
+	if productID == "" {
+		respond.Error(ctx, fmt.Errorf("id is required"))
+		return nil
+	}
+	result, err := h.service.GetProductByID(ctx.Context(), productID)
+	if err != nil {
+		respond.Error(ctx, err)
+		return nil
+	}
+
+	respond.Success(ctx, http.StatusOK, "Succeed to GET data", result)
+	return nil
+}
+
+func (h *handler) DeleteProduct(ctx *fiber.Ctx) error {
+	reqCtx := ctx.Locals("ctx").(context.Context)
+	productID := ctx.Params("id")
+	if productID == "" {
+		respond.Error(ctx, fmt.Errorf("id is required"))
+		return nil
+	}
+	err := h.service.DeleteProduct(reqCtx, productID)
+	if err != nil {
+		respond.Error(ctx, err)
+		return nil
+	}
+
+	respond.Success(ctx, http.StatusOK, "Succeed to DELETE data", nil)
 	return nil
 }

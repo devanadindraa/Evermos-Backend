@@ -174,7 +174,7 @@ func (s *service) DeleteAddress(ctx context.Context, addressID string) error {
 		}
 	}
 	if err := s.db.WithContext(ctx).Where("id = ?", addressID).Delete(&Address{}).Error; err != nil {
-		return fmt.Errorf("error deleting product capital details: %v", err)
+		return fmt.Errorf("error deleting address details: %v", err)
 	}
 
 	return nil

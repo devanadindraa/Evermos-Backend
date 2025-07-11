@@ -79,6 +79,8 @@ CREATE TABLE
         updated_at_date DATETIME,
         created_at_date DATETIME,
         FOREIGN KEY (id_produk) REFERENCES produk (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
     );
 
 -- TABEL LOG PRODUK
