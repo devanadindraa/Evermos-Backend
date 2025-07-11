@@ -33,7 +33,6 @@ func NewService(config *config.Config, db *gorm.DB) Service {
 }
 
 func (s *service) AddCategory(ctx context.Context, input CategoryReq) (res *Category, err error) {
-	// Build user object
 	category := Category{
 		NamaCategory:  input.NamaCategory,
 		CreatedAtDate: time.Now(),

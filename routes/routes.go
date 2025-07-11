@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/devanadindraa/Evermos-Backend/domains/address"
 	"github.com/devanadindraa/Evermos-Backend/domains/category"
 	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
 	"github.com/devanadindraa/Evermos-Backend/domains/shop"
@@ -21,6 +22,7 @@ func NewDependency(
 	provcityHandler provcity.Handler,
 	categoryHandler category.Handler,
 	shopHandler shop.Handler,
+	addressHandler address.Handler,
 ) *Dependency {
 
 	app := fiber.New()
@@ -58,6 +60,8 @@ func NewDependency(
 	{
 		user.Put("", mw.JWT(false), userHandler.UpdateProfile)
 		user.Get("", mw.JWT(false), userHandler.GetProfile)
+		user.Post("/alamat", mw.JWT(false), addressHandler.AddAddress)
+		user.Get("/alamat", mw.JWT(false), addressHandler.GetMyAddress)
 	}
 
 	// domain provcity
