@@ -41,6 +41,9 @@ func GetMetaData(ctx *fiber.Ctx, validate *validator.Validate, allowedColumns ..
 	if keyword == "" {
 		keyword = ctx.Query("q")
 	}
+	if keyword == "" {
+		keyword = ctx.Query("judul_alamat")
+	}
 
 	startCreatedAtStr := ctx.Query(constants.QUERY_PARAMS_START_CREATED_AT)
 	endCreatedAtStr := ctx.Query(constants.QUERY_PARAMS_END_CREATED_AT)

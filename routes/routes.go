@@ -62,6 +62,9 @@ func NewDependency(
 		user.Get("", mw.JWT(false), userHandler.GetProfile)
 		user.Post("/alamat", mw.JWT(false), addressHandler.AddAddress)
 		user.Get("/alamat", mw.JWT(false), addressHandler.GetMyAddress)
+		user.Get("/alamat/:id", mw.JWT(false), addressHandler.GetAddressByID)
+		user.Delete("/alamat/:id", mw.JWT(false), addressHandler.DeleteAddress)
+		user.Put("/alamat/:id", mw.JWT(false), addressHandler.UpdateAddress)
 	}
 
 	// domain provcity
