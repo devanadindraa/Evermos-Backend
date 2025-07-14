@@ -102,7 +102,9 @@ func NewDependency(
 	{
 		product.Post("", mw.JWT(false), productHandler.AddProduct)
 		product.Get("/:id", mw.JWT(false), productHandler.GetProductByID)
+		product.Get("", mw.JWT(false), productHandler.GetProducts)
 		product.Delete("/:id", mw.JWT(false), productHandler.DeleteProduct)
+		product.Put("/:id", mw.JWT(false), productHandler.UpdateProduct)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {
