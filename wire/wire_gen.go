@@ -13,6 +13,7 @@ import (
 	"github.com/devanadindraa/Evermos-Backend/domains/product"
 	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
 	"github.com/devanadindraa/Evermos-Backend/domains/shop"
+	"github.com/devanadindraa/Evermos-Backend/domains/trx"
 	"github.com/devanadindraa/Evermos-Backend/domains/user"
 	"github.com/devanadindraa/Evermos-Backend/middlewares"
 	"github.com/devanadindraa/Evermos-Backend/routes"
@@ -46,7 +47,9 @@ func initializeDependency(config2 *config.Config) (*routes.Dependency, error) {
 	addressHandler := address.NewHandler(addressService, validate)
 	productService := product.NewService(config2, db)
 	productHandler := product.NewHandler(productService, validate)
-	dependency := routes.NewDependency(config2, middlewaresMiddlewares, db, handler, provcityHandler, categoryHandler, shopHandler, addressHandler, productHandler)
+	trxService := trx.NewService(config2, db)
+	trxHandler := trx.NewHandler(trxService, validate)
+	dependency := routes.NewDependency(config2, middlewaresMiddlewares, db, handler, provcityHandler, categoryHandler, shopHandler, addressHandler, productHandler, trxHandler)
 	return dependency, nil
 }
 
@@ -63,6 +66,8 @@ var shopSet = wire.NewSet(shop.NewService, shop.NewHandler)
 var addressSet = wire.NewSet(address.NewService, address.NewHandler)
 
 var productSet = wire.NewSet(product.NewService, product.NewHandler)
+
+var trxSet = wire.NewSet(trx.NewService, trx.NewHandler)
 
 func NewValidator() *validator.Validate {
 	return validator.New()

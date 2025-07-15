@@ -10,6 +10,7 @@ import (
 	"github.com/devanadindraa/Evermos-Backend/domains/product"
 	"github.com/devanadindraa/Evermos-Backend/domains/provcity"
 	"github.com/devanadindraa/Evermos-Backend/domains/shop"
+	"github.com/devanadindraa/Evermos-Backend/domains/trx"
 	"github.com/devanadindraa/Evermos-Backend/domains/user"
 	"github.com/devanadindraa/Evermos-Backend/middlewares"
 	"github.com/devanadindraa/Evermos-Backend/routes"
@@ -49,6 +50,11 @@ var productSet = wire.NewSet(
 	product.NewHandler,
 )
 
+var trxSet = wire.NewSet(
+	trx.NewService,
+	trx.NewHandler,
+)
+
 func NewValidator() *validator.Validate {
 	return validator.New()
 }
@@ -66,6 +72,7 @@ func initializeDependency(config *config.Config) (*routes.Dependency, error) {
 		shopSet,
 		addressSet,
 		productSet,
+		trxSet,
 	)
 
 	return nil, nil

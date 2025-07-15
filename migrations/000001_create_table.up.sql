@@ -125,7 +125,7 @@ CREATE TABLE
         id_toko INT,
         kuantitas INT,
         harga_total INT,
-        update_at_date DATETIME,
+        updated_at_date DATETIME,
         created_at_date DATETIME,
         FOREIGN KEY (id_trx) REFERENCES trx (id),
         FOREIGN KEY (id_log_produk) REFERENCES log_produk (id),
