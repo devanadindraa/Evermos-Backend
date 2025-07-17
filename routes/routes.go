@@ -113,6 +113,7 @@ func NewDependency(
 	trx := router.Group("/trx")
 	{
 		trx.Post("", mw.JWT(false), trxHandler.AddTrx)
+		trx.Get("/:id", mw.JWT(false), trxHandler.GetTrxByID)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {

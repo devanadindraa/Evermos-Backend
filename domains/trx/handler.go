@@ -2,6 +2,7 @@ package trx
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
@@ -12,6 +13,7 @@ import (
 
 type Handler interface {
 	AddTrx(ctx *fiber.Ctx) error
+	GetTrxByID(ctx *fiber.Ctx) error
 }
 
 type handler struct {
@@ -47,5 +49,22 @@ func (h *handler) AddTrx(ctx *fiber.Ctx) error {
 	}
 
 	respond.Success(ctx, http.StatusOK, "Succeed to POST data", res)
+	return nil
+}
+
+func (h *handler) GetTrxByID(ctx *fiber.Ctx) error {
+	reqCtx := ctx.Locals("ctx").(context.Context)
+	trxID := ctx.Params("id")
+	if trxID == "" {
+		respond.Error(ctx, fmt.Errorf("id is required"))
+		return nil
+	}
+	result, err := h.service.GetTrxByID(reqCtx, trxID)
+	if err != nil {
+		respond.Error(ctx, err)
+		return nil
+	}
+
+	respond.Success(ctx, http.StatusOK, "Succeed to GET data", result)
 	return nil
 }

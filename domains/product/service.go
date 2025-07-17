@@ -407,7 +407,6 @@ func (s *service) GetProducts(ctx context.Context, filter GetProductReq) ([]Prod
 			HargaKonsumen: &p.HargaKonsumen,
 			Stok:          &p.Stok,
 			Deskripsi:     &p.Deskripsi,
-			// Photos:        ? (optional mapping if needed)
 		}
 		result = append(result, res)
 	}

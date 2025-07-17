@@ -3,11 +3,14 @@ package trx
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/devanadindraa/Evermos-Backend/domains/address"
+	"github.com/devanadindraa/Evermos-Backend/domains/category"
 	"github.com/devanadindraa/Evermos-Backend/domains/product"
+	"github.com/devanadindraa/Evermos-Backend/domains/shop"
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
 	"github.com/devanadindraa/Evermos-Backend/utils/config"
 	contextUtil "github.com/devanadindraa/Evermos-Backend/utils/context"
@@ -16,6 +19,7 @@ import (
 
 type Service interface {
 	AddTrx(ctx context.Context, input TrxReq) (res *Trx, err error)
+	GetTrxByID(ctx context.Context, trxID string) (*TrxRes, error)
 }
 
 type service struct {
@@ -124,4 +128,98 @@ func (s *service) AddTrx(ctx context.Context, input TrxReq) (*Trx, error) {
 	}
 
 	return trx, nil
+}
+
+func (s *service) GetTrxByID(ctx context.Context, trxID string) (*TrxRes, error) {
+	token, err := contextUtil.GetTokenClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID := uint(token.Claims.ID)
+
+	var trx Trx
+	if err := s.db.WithContext(ctx).
+		First(&trx, "id = ? AND id_user = ?", trxID, userID).Error; err != nil {
+		return nil, apierror.NewWarn(http.StatusNotFound, "Failed, trx not found")
+	}
+
+	var addresss address.Address
+	if err := s.db.WithContext(ctx).
+		First(&addresss, "id = ?", trx.AlamatPengiriman).Error; err != nil {
+		return nil, apierror.NewWarn(http.StatusNotFound, "Failed, trx not found")
+	}
+
+	var details []DetailTrx
+	if err := s.db.WithContext(ctx).
+		Where("id_trx = ?", trx.ID).
+		Find(&details).Error; err != nil {
+		return nil, fmt.Errorf("failed to get detail trx: %w", err)
+	}
+
+	var detailResList []DetailTrxRes
+
+	for _, d := range details {
+		var logProduk LogProduk
+		if err := s.db.WithContext(ctx).First(&logProduk, "id = ?", d.IdLogProduk).Error; err != nil {
+			continue
+		}
+
+		var shops shop.Toko
+		s.db.WithContext(ctx).First(&shops, logProduk.IdToko)
+
+		var categorys category.Category
+		s.db.WithContext(ctx).First(&categorys, logProduk.IdCategory)
+
+		var photos []product.Photo
+		s.db.WithContext(ctx).Where("id_produk = ?", logProduk.IdProduk).Find(&photos)
+
+		var photoURLs []string
+		for _, p := range photos {
+			photoURLs = append(photoURLs, p.Url)
+		}
+
+		productRes := &product.ProductRes{
+			ID:            int(logProduk.IdProduk),
+			NamaProduk:    &logProduk.NamaProduk,
+			Slug:          &logProduk.Slug,
+			HargaReseller: &logProduk.HargaReseller,
+			HargaKonsumen: &logProduk.HargaKonsumen,
+			Deskripsi:     &logProduk.Deskripsi,
+			Category: &category.CategoryRes{
+				ID:           int(categorys.ID),
+				NamaCategory: categorys.NamaCategory,
+			},
+			Photos: photoURLs,
+		}
+
+		detailRes := DetailTrxRes{
+			Product: *productRes,
+			Toko: &shop.ShopRes{
+				ID:       int(logProduk.IdToko),
+				NamaToko: shops.NamaToko,
+				UrlFoto:  shops.UrlFoto,
+			},
+			Kuantitas:  d.Kuantitas,
+			HargaTotal: d.HargaTotal,
+		}
+
+		detailResList = append(detailResList, detailRes)
+	}
+
+	res := &TrxRes{
+		ID:          int(trx.ID),
+		HargaTotal:  trx.HargaTotal,
+		KodeInvoice: trx.KodeInvoice,
+		MethodBayar: trx.MethodBayar,
+		AlamatKirim: &address.AddressRes{
+			ID:           int(trx.AlamatPengiriman),
+			JudulAlamat:  addresss.JudulAlamat,
+			NamaPenerima: addresss.NamaPenerima,
+			NoTelp:       addresss.NoTelp,
+			DetailAlamat: addresss.DetailAlamat,
+		},
+		DetailTrx: detailResList,
+	}
+
+	return res, nil
 }
