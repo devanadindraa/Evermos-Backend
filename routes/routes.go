@@ -114,6 +114,7 @@ func NewDependency(
 	{
 		trx.Post("", mw.JWT(false), trxHandler.AddTrx)
 		trx.Get("/:id", mw.JWT(false), trxHandler.GetTrxByID)
+		trx.Get("", mw.JWT(false), trxHandler.GetTrx)
 	}
 
 	app.Use(func(ctx *fiber.Ctx) error {

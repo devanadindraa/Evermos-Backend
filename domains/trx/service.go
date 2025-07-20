@@ -13,6 +13,7 @@ import (
 	"github.com/devanadindraa/Evermos-Backend/domains/shop"
 	apierror "github.com/devanadindraa/Evermos-Backend/utils/api-error"
 	"github.com/devanadindraa/Evermos-Backend/utils/config"
+	"github.com/devanadindraa/Evermos-Backend/utils/constants"
 	contextUtil "github.com/devanadindraa/Evermos-Backend/utils/context"
 	"gorm.io/gorm"
 )
@@ -20,6 +21,7 @@ import (
 type Service interface {
 	AddTrx(ctx context.Context, input TrxReq) (res *Trx, err error)
 	GetTrxByID(ctx context.Context, trxID string) (*TrxRes, error)
+	GetTrx(ctx context.Context, filter *constants.FilterReq) (*PaginatedTrxRes, error)
 }
 
 type service struct {
@@ -222,4 +224,123 @@ func (s *service) GetTrxByID(ctx context.Context, trxID string) (*TrxRes, error)
 	}
 
 	return res, nil
+}
+
+func (s *service) GetTrx(ctx context.Context, filter *constants.FilterReq) (*PaginatedTrxRes, error) {
+	token, err := contextUtil.GetTokenClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID := uint(token.Claims.ID)
+	isAdmin := token.Claims.IsAdmin
+
+	var totalData int64
+	var trxs []Trx
+	var db *gorm.DB
+	if !isAdmin {
+		db = s.db.Model(&Trx{}).Where("id_user = ?", userID)
+	} else {
+		db = s.db.Model(&Trx{})
+	}
+	if err := db.Count(&totalData).Error; err != nil {
+		return nil, apierror.FromErr(err)
+	}
+
+	offset := (filter.Page - 1) * filter.Limit
+	if err := db.
+		Order(fmt.Sprintf("%s %s", filter.OrderBy, filter.SortOrder)).
+		Limit(int(filter.Limit)).
+		Offset(int(offset)).
+		Find(&trxs).Error; err != nil {
+		return nil, apierror.FromErr(err)
+	}
+
+	var trxResponses []TrxRes
+
+	for _, trx := range trxs {
+		var addresss address.Address
+		if err := s.db.WithContext(ctx).
+			First(&addresss, "id = ?", trx.AlamatPengiriman).Error; err != nil {
+			continue
+		}
+
+		// ambil detail
+		var details []DetailTrx
+		if err := s.db.WithContext(ctx).
+			Where("id_trx = ?", trx.ID).
+			Find(&details).Error; err != nil {
+			continue
+		}
+
+		var detailResList []DetailTrxRes
+
+		for _, d := range details {
+			var logProduk LogProduk
+			if err := s.db.WithContext(ctx).First(&logProduk, "id = ?", d.IdLogProduk).Error; err != nil {
+				continue
+			}
+
+			var shops shop.Toko
+			s.db.WithContext(ctx).First(&shops, logProduk.IdToko)
+
+			var categorys category.Category
+			s.db.WithContext(ctx).First(&categorys, logProduk.IdCategory)
+
+			var photos []product.Photo
+			s.db.WithContext(ctx).Where("id_produk = ?", logProduk.IdProduk).Find(&photos)
+
+			var photoURLs []string
+			for _, p := range photos {
+				photoURLs = append(photoURLs, p.Url)
+			}
+
+			productRes := &product.ProductRes{
+				ID:            int(logProduk.IdProduk),
+				NamaProduk:    &logProduk.NamaProduk,
+				Slug:          &logProduk.Slug,
+				HargaReseller: &logProduk.HargaReseller,
+				HargaKonsumen: &logProduk.HargaKonsumen,
+				Deskripsi:     &logProduk.Deskripsi,
+				Category: &category.CategoryRes{
+					ID:           int(categorys.ID),
+					NamaCategory: categorys.NamaCategory,
+				},
+				Photos: photoURLs,
+			}
+
+			detailRes := DetailTrxRes{
+				Product: *productRes,
+				Toko: &shop.ShopRes{
+					ID:       int(logProduk.IdToko),
+					NamaToko: shops.NamaToko,
+					UrlFoto:  shops.UrlFoto,
+				},
+				Kuantitas:  d.Kuantitas,
+				HargaTotal: d.HargaTotal,
+			}
+
+			detailResList = append(detailResList, detailRes)
+		}
+
+		trxResponses = append(trxResponses, TrxRes{
+			ID:          int(trx.ID),
+			HargaTotal:  trx.HargaTotal,
+			KodeInvoice: trx.KodeInvoice,
+			MethodBayar: trx.MethodBayar,
+			AlamatKirim: &address.AddressRes{
+				ID:           int(trx.AlamatPengiriman),
+				JudulAlamat:  addresss.JudulAlamat,
+				NamaPenerima: addresss.NamaPenerima,
+				NoTelp:       addresss.NoTelp,
+				DetailAlamat: addresss.DetailAlamat,
+			},
+			DetailTrx: detailResList,
+		})
+	}
+
+	return &PaginatedTrxRes{
+		Data:  trxResponses,
+		Page:  int(filter.Page),
+		Limit: int(filter.Limit),
+	}, nil
 }

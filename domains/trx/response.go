@@ -21,3 +21,9 @@ type DetailTrxRes struct {
 	Kuantitas  int                `json:"kuantitas"`
 	HargaTotal int                `json:"harga_total"`
 }
+
+type PaginatedTrxRes struct {
+	Data  []TrxRes `json:"data"`
+	Page  int      `json:"page"`
+	Limit int      `json:"limit"`
+}
