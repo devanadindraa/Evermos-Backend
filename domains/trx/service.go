@@ -138,11 +138,19 @@ func (s *service) GetTrxByID(ctx context.Context, trxID string) (*TrxRes, error)
 		return nil, err
 	}
 	userID := uint(token.Claims.ID)
+	isAdmin := token.Claims.IsAdmin
 
 	var trx Trx
-	if err := s.db.WithContext(ctx).
-		First(&trx, "id = ? AND id_user = ?", trxID, userID).Error; err != nil {
-		return nil, apierror.NewWarn(http.StatusNotFound, "Failed, trx not found")
+	if !isAdmin {
+		if err := s.db.WithContext(ctx).
+			First(&trx, "id = ? AND id_user = ?", trxID, userID).Error; err != nil {
+			return nil, apierror.NewWarn(http.StatusNotFound, "Failed, trx not found")
+		}
+	} else {
+		if err := s.db.WithContext(ctx).
+			First(&trx, "id = ?", trxID).Error; err != nil {
+			return nil, apierror.NewWarn(http.StatusNotFound, "Failed, trx not found")
+		}
 	}
 
 	var addresss address.Address
@@ -264,7 +272,6 @@ func (s *service) GetTrx(ctx context.Context, filter *constants.FilterReq) (*Pag
 			continue
 		}
 
-		// ambil detail
 		var details []DetailTrx
 		if err := s.db.WithContext(ctx).
 			Where("id_trx = ?", trx.ID).
